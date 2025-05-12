@@ -61,7 +61,7 @@
 <div id="login">
   <h1>관리자 로그인</h1>
   <input type="password" id="adminPass" placeholder="비밀번호를 입력하세요" />
-  <button onclick="login()">로그인</button>
+  <button id="loginBtn">로그인</button>
 </div>
 
 <div id="admin-panel" style="display:none;">
@@ -75,17 +75,21 @@
 </div>
 
 <script>
-const PASSWORD = "lunchboss"; // 기본 비밀번호
+const PASSWORD = "lunchboss";
 
-function login() {
-  const pw = document.getElementById("adminPass").value;
-  if (pw === PASSWORD) {
-    document.getElementById("login").style.display = "none";
-    document.getElementById("admin-panel").style.display = "block";
-  } else {
-    alert("비밀번호가 틀렸습니다!");
-  }
-}
+document.addEventListener("DOMContentLoaded", function() {
+  document.getElementById("loginBtn").addEventListener("click", function() {
+    const pw = document.getElementById("adminPass").value;
+    console.log("입력한 비밀번호:", pw);
+    if (pw === PASSWORD) {
+      alert("로그인 성공!");
+      document.getElementById("login").style.display = "none";
+      document.getElementById("admin-panel").style.display = "block";
+    } else {
+      alert("비밀번호가 틀렸습니다!");
+    }
+  });
+});
 
 let applicants = [];
 
@@ -95,16 +99,12 @@ function loadData() {
     .then(res => res.text())
     .then(csv => {
       const rows = csv.trim().split("\n").map(row => row.split(","));
-      const headers = rows[0];
-      applicants = rows.slice(1).map(r => {
-        return {
-          timestamp: r[0],
-          name: r[1],
-          service: r[2],
-          department: r[3],
-          gender: r[4]
-        };
-      });
+      applicants = rows.slice(1).map(r => ({
+        name: r[1],
+        service: r[2],
+        department: r[3],
+        gender: r[4]
+      }));
       drawTable(applicants);
     });
 }
@@ -120,7 +120,7 @@ function drawTable(data) {
 
 function shuffle(array) {
   for (let i = array.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1)];
+    const j = Math.floor(Math.random() * (i + 1));
     [array[i], array[j]] = [array[j], array[i]];
   }
   return array;
@@ -135,7 +135,6 @@ function assignTeams() {
     let team = [];
     let usedDept = new Set();
     let usedService = new Set();
-    let usedGender = {남성: 0, 여성: 0};
 
     for (let i = 0; i < pool.length && team.length < 3; i++) {
       const p = pool[i];
@@ -148,7 +147,6 @@ function assignTeams() {
         used.add(p.name);
         usedDept.add(p.department);
         usedService.add(p.service);
-        if (p.gender in usedGender) usedGender[p.gender]++;
       }
     }
 
