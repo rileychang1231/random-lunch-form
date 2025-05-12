@@ -1,0 +1,176 @@
+
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>스푼랩스 관리자 페이지</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 40px;
+      background-color: #f5f5f5;
+    }
+    h1 {
+      color: #333;
+    }
+    #login, #admin-panel {
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 30px;
+      background-color: white;
+      border-radius: 12px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    input[type="password"], input[type="text"] {
+      padding: 10px;
+      width: 100%;
+      font-size: 16px;
+      margin-top: 10px;
+      margin-bottom: 20px;
+    }
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+      cursor: pointer;
+      background-color: #FF6B6B;
+      border: none;
+      color: white;
+      border-radius: 8px;
+    }
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      margin-top: 20px;
+    }
+    th, td {
+      border: 1px solid #ccc;
+      padding: 8px;
+      text-align: center;
+    }
+    .team-box {
+      margin-top: 30px;
+      padding: 15px;
+      background: #fff;
+      border-radius: 8px;
+      box-shadow: 0 0 5px rgba(0,0,0,0.05);
+    }
+  </style>
+</head>
+<body>
+
+<div id="login">
+  <h1>관리자 로그인</h1>
+  <input type="password" id="adminPass" placeholder="비밀번호를 입력하세요" />
+  <button onclick="login()">로그인</button>
+</div>
+
+<div id="admin-panel" style="display:none;">
+  <h1>스푼랩스 랜덤런치 관리자</h1>
+  <p>최신 신청자 불러오기 및 조 편성</p>
+  <input type="text" id="sheetUrl" value="https://docs.google.com/spreadsheets/d/1rybpPkyHJ1ecLCj2LQQfeTtgYyNKDrYqgEdnPIp60Vs/gviz/tq?tqx=out:csv" />
+  <button onclick="loadData()">신청자 불러오기</button>
+  <button onclick="assignTeams()">조 편성하기</button>
+  <div id="tableWrap"></div>
+  <div id="teams"></div>
+</div>
+
+<script>
+const PASSWORD = "lunchboss"; // 기본 비밀번호
+
+function login() {
+  const pw = document.getElementById("adminPass").value;
+  if (pw === PASSWORD) {
+    document.getElementById("login").style.display = "none";
+    document.getElementById("admin-panel").style.display = "block";
+  } else {
+    alert("비밀번호가 틀렸습니다!");
+  }
+}
+
+let applicants = [];
+
+function loadData() {
+  const url = document.getElementById("sheetUrl").value;
+  fetch(url)
+    .then(res => res.text())
+    .then(csv => {
+      const rows = csv.trim().split("\n").map(row => row.split(","));
+      const headers = rows[0];
+      applicants = rows.slice(1).map(r => {
+        return {
+          timestamp: r[0],
+          name: r[1],
+          service: r[2],
+          department: r[3],
+          gender: r[4]
+        };
+      });
+      drawTable(applicants);
+    });
+}
+
+function drawTable(data) {
+  let html = "<table><tr><th>이름</th><th>서비스</th><th>부서</th><th>성별</th></tr>";
+  data.forEach(p => {
+    html += `<tr><td>${p.name}</td><td>${p.service}</td><td>${p.department}</td><td>${p.gender}</td></tr>`;
+  });
+  html += "</table>";
+  document.getElementById("tableWrap").innerHTML = html;
+}
+
+function shuffle(array) {
+  for (let i = array.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1)];
+    [array[i], array[j]] = [array[j], array[i]];
+  }
+  return array;
+}
+
+function assignTeams() {
+  const teams = [];
+  const pool = shuffle([...applicants]);
+  const used = new Set();
+
+  while (pool.length > 0) {
+    let team = [];
+    let usedDept = new Set();
+    let usedService = new Set();
+    let usedGender = {남성: 0, 여성: 0};
+
+    for (let i = 0; i < pool.length && team.length < 3; i++) {
+      const p = pool[i];
+      if (
+        !used.has(p.name) &&
+        !usedDept.has(p.department) &&
+        !usedService.has(p.service)
+      ) {
+        team.push(p);
+        used.add(p.name);
+        usedDept.add(p.department);
+        usedService.add(p.service);
+        if (p.gender in usedGender) usedGender[p.gender]++;
+      }
+    }
+
+    if (team.length > 0) {
+      teams.push(team);
+      pool.splice(0, team.length);
+    } else {
+      break;
+    }
+  }
+
+  let html = "<h2>조 편성 결과</h2>";
+  teams.forEach((t, idx) => {
+    html += `<div class="team-box"><strong>조 ${idx+1}</strong><ul>`;
+    t.forEach(p => {
+      html += `<li>${p.name} (${p.department}, ${p.gender}, ${p.service})</li>`;
+    });
+    html += "</ul></div>";
+  });
+  document.getElementById("teams").innerHTML = html;
+}
+</script>
+
+</body>
+</html>
