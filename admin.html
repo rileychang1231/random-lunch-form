@@ -157,7 +157,10 @@ function assignTeams() {
       }
     }
 
+    
     if (team.length < teamSize && all.length > 0) {
+      console.log("⚠️ 조건 충족 인원 부족 → 조건 무시하고 강제 배정 시작");
+
       for (let i = 0; i < all.length && team.length < teamSize; i++) {
         const p = all[i];
         const key = normalize(p.name);
@@ -169,7 +172,7 @@ function assignTeams() {
     }
 
     if (team.length > 0) {
-      console.log("✅ 편성된 팀:", team.map(p => p.name)); console.log("팀 구성 인원 수:", team.length);
+      console.log("✅ 편성된 팀:", team.map(p => p.name)); console.log("🧩 조당 인원:", team.length); console.log("팀 구성 인원 수:", team.length);
       teams.push(team);
       all.splice(0, team.length);
     } else {
