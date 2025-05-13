@@ -56,6 +56,10 @@ const staffCSV = "https://docs.google.com/spreadsheets/d/1nLCJ5UUyMnXx5urkTBqc3n
 let applicants = [];
 let staffMap = {};
 
+function normalize(str) {
+  return str.trim().replace(/^["']|["']$/g, "").toLowerCase();
+}
+
 document.addEventListener("DOMContentLoaded", function () {
   document.getElementById("loginBtn").addEventListener("click", function () {
     const pw = document.getElementById("adminPass").value;
@@ -80,14 +84,15 @@ async function loadAllData() {
   const staffRows = staffText.trim().split("\n").map(row => row.split(","));
 
   const applicantNames = applicantRows.slice(1)
-    .map(r => r.length >= 2 ? r[1].trim().replace(/^["']|["']$/g, "") : null)
-    .filter(name => name !== null && name !== "");
+    .map(r => r.length >= 2 ? normalize(r[1]) : null)
+    .filter(name => name);
 
   staffMap = {};
   staffRows.slice(1).forEach(r => {
-    const name = r[2].trim();
-    staffMap[name] = {
-      name,
+    const rawName = r[2].trim();
+    const nameKey = normalize(rawName);
+    staffMap[nameKey] = {
+      name: rawName,
       service: r[0].trim(),
       department: r[1].trim(),
       gender: r[3].trim()
@@ -96,6 +101,7 @@ async function loadAllData() {
 
   applicants = applicantNames.map(name => staffMap[name]).filter(x => x !== undefined);
   console.log("✅ 불러온 신청자 수:", applicants.length);
+  console.log("📦 현재 신청자:", applicants.map(a => a.name));
   drawTable(applicants);
 }
 
@@ -122,9 +128,6 @@ function assignTeams() {
     alert("올바른 조당 인원 수를 입력해주세요!");
     return;
   }
-
-  console.log("📦 조당 인원 수:", teamSize);
-  console.log("📦 현재 신청자:", applicants.map(a => a.name));
 
   const males = applicants.filter(p => p.gender === "M");
   const females = applicants.filter(p => p.gender === "W");
