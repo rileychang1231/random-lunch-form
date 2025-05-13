@@ -3,7 +3,7 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
-  <title>스푼랩스 관리자 페이지</title>
+  <title>스푼랩스 관리자 디버그 페이지</title>
   <style>
     body { font-family: Arial, sans-serif; padding: 40px; background-color: #f5f5f5; }
     h1 { color: #333; }
@@ -39,7 +39,7 @@
 </div>
 
 <div id="admin-panel" style="display:none;">
-  <h1>스푼랩스 조 편성 관리자</h1>
+  <h1>스푼랩스 조 편성 관리자 (디버그)</h1>
   <button onclick="loadAllData()">신청자+직원정보 불러오기</button><br>
   <label>조당 인원 수</label>
   <input type="number" id="teamSize" value="3" min="1" max="10" />
@@ -70,6 +70,7 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 
 async function loadAllData() {
+  console.log("신청자+직원정보 불러오기 시작");
   const [applicantText, staffText] = await Promise.all([
     fetch(applicantCSV).then(res => res.text()),
     fetch(staffCSV).then(res => res.text())
@@ -91,6 +92,7 @@ async function loadAllData() {
   });
 
   applicants = applicantNames.map(name => staffMap[name]).filter(x => x !== undefined);
+  console.log("불러온 신청자 수:", applicants.length);
   drawTable(applicants);
 }
 
@@ -118,6 +120,9 @@ function assignTeams() {
     return;
   }
 
+  console.log("조당 인원 수:", teamSize);
+  console.log("현재 신청자:", applicants.map(a => a.name));
+
   const males = applicants.filter(p => p.gender === "M");
   const females = applicants.filter(p => p.gender === "W");
   const all = shuffle([...males, ...females]);
@@ -144,7 +149,6 @@ function assignTeams() {
       }
     }
 
-    // 남은 인원이 조건 안 맞아도 배정
     if (team.length < teamSize && all.length > 0) {
       for (let i = 0; i < all.length && team.length < teamSize; i++) {
         const p = all[i];
@@ -156,6 +160,7 @@ function assignTeams() {
     }
 
     if (team.length > 0) {
+      console.log("편성된 팀:", team.map(p => p.name));
       teams.push(team);
       all.splice(0, team.length);
     } else {
