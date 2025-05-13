@@ -21,7 +21,7 @@
       border-radius: 12px;
       box-shadow: 0 0 10px rgba(0,0,0,0.1);
     }
-    input[type="password"] {
+    input[type="password"], input[type="number"] {
       padding: 10px;
       width: 100%;
       font-size: 16px;
@@ -67,7 +67,9 @@
 
 <div id="admin-panel" style="display:none;">
   <h1>스푼랩스 조 편성 관리자</h1>
-  <button onclick="loadAllData()">신청자+직원정보 불러오기</button>
+  <button onclick="loadAllData()">신청자+직원정보 불러오기</button><br>
+  <label>조당 인원 수</label>
+  <input type="number" id="teamSize" value="3" min="1" max="10" />
   <button onclick="assignTeams()">조 편성하기</button>
   <div id="tableWrap"></div>
   <div id="teams"></div>
@@ -137,6 +139,12 @@ function shuffle(array) {
 }
 
 function assignTeams() {
+  const teamSize = parseInt(document.getElementById("teamSize").value);
+  if (isNaN(teamSize) || teamSize < 1) {
+    alert("올바른 조당 인원 수를 입력해주세요!");
+    return;
+  }
+
   const teams = [];
   const pool = shuffle([...applicants]);
   const used = new Set();
@@ -146,7 +154,7 @@ function assignTeams() {
     let usedDept = new Set();
     let usedService = new Set();
 
-    for (let i = 0; i < pool.length && team.length < 3; i++) {
+    for (let i = 0; i < pool.length && team.length < teamSize; i++) {
       const p = pool[i];
       if (
         !used.has(p.name) &&
