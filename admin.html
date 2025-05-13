@@ -143,13 +143,14 @@ function assignTeams() {
 
     for (let i = 0; i < all.length && team.length < teamSize; i++) {
       const p = all[i];
+      const key = normalize(p.name);
       if (
-        !used.has(p.name) &&
+        !used.has(key) &&
         !usedDept.has(p.department) &&
         !usedService.has(p.service)
       ) {
         team.push(p);
-        used.add(p.name);
+        used.add(key);
         usedDept.add(p.department);
         usedService.add(p.service);
       }
@@ -158,9 +159,10 @@ function assignTeams() {
     if (team.length < teamSize && all.length > 0) {
       for (let i = 0; i < all.length && team.length < teamSize; i++) {
         const p = all[i];
-        if (!used.has(p.name)) {
+        const key = normalize(p.name);
+        if (!used.has(key)) {
           team.push(p);
-          used.add(p.name);
+          used.add(key);
         }
       }
     }
