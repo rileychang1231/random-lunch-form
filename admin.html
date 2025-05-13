@@ -79,7 +79,7 @@ async function loadAllData() {
   const applicantRows = applicantText.trim().split("\n").map(row => row.split(","));
   const staffRows = staffText.trim().split("\n").map(row => row.split(","));
 
-  const applicantNames = applicantRows.slice(1).map(r => r[1].trim());
+  const applicantNames = applicantRows.slice(1).map(r => r[1].trim().replace(/^"|"$/g, "").replace(/^'|'$/g, ""));
   staffMap = {};
   staffRows.slice(1).forEach(r => {
     const name = r[2].trim();
