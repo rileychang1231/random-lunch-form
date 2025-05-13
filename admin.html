@@ -99,7 +99,7 @@ async function loadAllData() {
     };
   });
 
-  applicants = applicantNames.map(name => staffMap[name]).filter(x => x !== undefined);
+  applicants = applicantNames.map(name => staffMap[normalize(name)]).filter(x => x !== undefined);
   console.log("✅ 불러온 신청자 수:", applicants.length);
   console.log("📦 현재 신청자:", applicants.map(a => a.name));
   drawTable(applicants);
