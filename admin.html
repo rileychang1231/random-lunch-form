@@ -92,16 +92,17 @@ async function loadAllData() {
     const rawName = r[2].trim();
     const nameKey = normalize(rawName);
     staffMap[nameKey] = {
-      name: rawName,
-      service: r[0].trim(),
-      department: r[1].trim(),
-      gender: r[3].trim()
+      name: normalize(rawName),
+      service: normalize(r[0]),
+      department: normalize(r[1]),
+      gender: normalize(r[3])
     };
   });
 
   applicants = applicantNames.map(name => staffMap[normalize(name)]).filter(x => x !== undefined);
   console.log("✅ 불러온 신청자 수:", applicants.length);
   console.log("📦 현재 신청자:", applicants.map(a => a.name));
+console.log("📦 전체 신청자 raw:", JSON.stringify(applicants));
   drawTable(applicants);
 }
 
@@ -168,7 +169,7 @@ function assignTeams() {
     }
 
     if (team.length > 0) {
-      console.log("✅ 편성된 팀:", team.map(p => p.name));
+      console.log("✅ 편성된 팀:", team.map(p => p.name)); console.log("팀 구성 인원 수:", team.length);
       teams.push(team);
       all.splice(0, team.length);
     } else {
