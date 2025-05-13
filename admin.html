@@ -5,55 +5,28 @@
   <meta charset="UTF-8">
   <title>스푼랩스 관리자 페이지</title>
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      padding: 40px;
-      background-color: #f5f5f5;
-    }
-    h1 {
-      color: #333;
-    }
+    body { font-family: Arial, sans-serif; padding: 40px; background-color: #f5f5f5; }
+    h1 { color: #333; }
     #login, #admin-panel {
-      max-width: 700px;
-      margin: 0 auto;
-      padding: 30px;
-      background-color: white;
-      border-radius: 12px;
+      max-width: 700px; margin: 0 auto; padding: 30px;
+      background-color: white; border-radius: 12px;
       box-shadow: 0 0 10px rgba(0,0,0,0.1);
     }
     input[type="password"], input[type="number"] {
-      padding: 10px;
-      width: 100%;
-      font-size: 16px;
-      margin-top: 10px;
-      margin-bottom: 20px;
+      padding: 10px; width: 100%; font-size: 16px;
+      margin-top: 10px; margin-bottom: 20px;
     }
     button {
-      padding: 10px 20px;
-      font-size: 16px;
-      cursor: pointer;
-      background-color: #FF6B6B;
-      border: none;
-      color: white;
-      border-radius: 8px;
+      padding: 10px 20px; font-size: 16px;
+      cursor: pointer; background-color: #FF6B6B;
+      border: none; color: white; border-radius: 8px;
       margin-right: 10px;
     }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 20px;
-    }
-    th, td {
-      border: 1px solid #ccc;
-      padding: 8px;
-      text-align: center;
-    }
+    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+    th, td { border: 1px solid #ccc; padding: 8px; text-align: center; }
     .team-box {
-      margin-top: 30px;
-      padding: 15px;
-      background: #fff;
-      border-radius: 8px;
-      box-shadow: 0 0 5px rgba(0,0,0,0.05);
+      margin-top: 30px; padding: 15px; background: #fff;
+      border-radius: 8px; box-shadow: 0 0 5px rgba(0,0,0,0.05);
     }
   </style>
 </head>
@@ -145,17 +118,20 @@ function assignTeams() {
     return;
   }
 
+  const males = applicants.filter(p => p.gender === "M");
+  const females = applicants.filter(p => p.gender === "W");
+  const all = shuffle([...males, ...females]);
+
   const teams = [];
-  const pool = shuffle([...applicants]);
   const used = new Set();
 
-  while (pool.length > 0) {
+  while (all.length > 0) {
     let team = [];
     let usedDept = new Set();
     let usedService = new Set();
 
-    for (let i = 0; i < pool.length && team.length < teamSize; i++) {
-      const p = pool[i];
+    for (let i = 0; i < all.length && team.length < teamSize; i++) {
+      const p = all[i];
       if (
         !used.has(p.name) &&
         !usedDept.has(p.department) &&
@@ -168,9 +144,20 @@ function assignTeams() {
       }
     }
 
+    // 남은 인원이 조건 안 맞아도 배정
+    if (team.length < teamSize && all.length > 0) {
+      for (let i = 0; i < all.length && team.length < teamSize; i++) {
+        const p = all[i];
+        if (!used.has(p.name)) {
+          team.push(p);
+          used.add(p.name);
+        }
+      }
+    }
+
     if (team.length > 0) {
       teams.push(team);
-      pool.splice(0, team.length);
+      all.splice(0, team.length);
     } else {
       break;
     }
