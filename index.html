@@ -65,7 +65,25 @@
     #result {
       margin-top: 20px;
       font-weight: bold;
-      color: #ffffff;
+      color: #000000; /* 변경: 검정색 */
+    }
+
+    .spinner {
+      margin-top: 10px;
+      border: 4px solid #eee;
+      border-top: 4px solid #00FFDD;
+      border-radius: 50%;
+      width: 28px;
+      height: 28px;
+      animation: spin 1s linear infinite;
+      display: none;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
     }
   </style>
 </head>
@@ -75,16 +93,24 @@
     <p>이름을 입력하고 점심 신청 버튼을 눌러주세요!</p>
     <input type="text" id="nameInput" placeholder="예: Isla" />
     <button onclick="submitForm()">점심 신청 🍱</button>
+    <div class="spinner" id="loader"></div>
     <div id="result"></div>
   </div>
 
   <script>
     function submitForm() {
-      const name = document.getElementById("nameInput").value;
+      const nameInput = document.getElementById("nameInput");
+      const name = nameInput.value;
+      const resultDiv = document.getElementById("result");
+      const loader = document.getElementById("loader");
+
       if (!name) {
         alert("이름을 입력해주세요!");
         return;
       }
+
+      resultDiv.innerText = "";
+      loader.style.display = "block"; // show loading spinner
 
       const formData = new FormData();
       formData.append("name", name);
@@ -95,11 +121,13 @@
       })
       .then(response => response.text())
       .then(data => {
-        document.getElementById("result").innerText = data;
-        document.getElementById("nameInput").value = "";
+        loader.style.display = "none";
+        resultDiv.innerText = data;
+        nameInput.value = "";
       })
       .catch(error => {
-        document.getElementById("result").innerText = "문제가 발생했어요 😢 다시 시도해주세요.";
+        loader.style.display = "none";
+        resultDiv.innerText = "문제가 발생했어요 😢 다시 시도해주세요.";
         console.error("Error:", error);
       });
     }
