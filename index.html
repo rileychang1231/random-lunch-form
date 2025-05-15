@@ -99,6 +99,22 @@
   </div>
 
   <script>
+    const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/1X0oWxxP0XuxRnw32x7vfp10U5UuZYj_KHi5rY1xftDk/gviz/tq?tqx=out:csv";
+
+    function triggerFallAnimation(name) {
+      const fallDiv = document.createElement("div");
+      fallDiv.className = "falling-name";
+      fallDiv.textContent = name;
+
+      const side = Math.random() > 0.5 ? "left" : "right";
+      const position = Math.random() * 120 + 10;
+      fallDiv.style[side] = position + "px";
+      fallDiv.style.top = "-30px";
+
+      document.body.appendChild(fallDiv);
+      setTimeout(() => fallDiv.remove(), 4000);
+    }
+
     function submitForm() {
       const nameInput = document.getElementById("nameInput");
       const name = nameInput.value;
@@ -134,23 +150,24 @@
       });
     }
 
-    function triggerFallAnimation(name) {
-      const fallDiv = document.createElement("div");
-      fallDiv.className = "falling-name";
-      fallDiv.textContent = name;
+    async function loadExistingNames() {
+      const res = await fetch(SHEET_CSV_URL);
+      const text = await res.text();
+      const rows = text.trim().split("\n").slice(1); // Skip header
+      const names = rows.map(row => row.split(",")[1].replace(/^"|"$/g, '')).filter(Boolean);
 
-      // Random x position: left or right side
-      const side = Math.random() > 0.5 ? "left" : "right";
-      const position = Math.random() * 120 + 10; // 10 ~ 130 px
-      fallDiv.style[side] = position + "px";
-      fallDiv.style.top = "-30px";
-
-      document.body.appendChild(fallDiv);
-
-      setTimeout(() => {
-        fallDiv.remove();
-      }, 4000);
+      let i = 0;
+      const interval = setInterval(() => {
+        if (i >= names.length) {
+          clearInterval(interval);
+        } else {
+          triggerFallAnimation(names[i]);
+          i++;
+        }
+      }, 600);
     }
+
+    window.onload = loadExistingNames;
   </script>
 </body>
 </html>
