@@ -9,11 +9,13 @@
       margin: 0;
       padding: 0;
       font-family: 'Helvetica', sans-serif;
-      background-color: #000000; /* 배경: 검정색 */
+      background-color: #000000;
       height: 100vh;
+      overflow: hidden;
       display: flex;
       align-items: center;
       justify-content: center;
+      position: relative;
     }
 
     .card {
@@ -24,10 +26,11 @@
       text-align: center;
       width: 90%;
       max-width: 400px;
+      z-index: 10;
     }
 
     h1 {
-      color: #FF6B00; /* 주황색 */
+      color: #FF6B00;
       margin-bottom: 20px;
     }
 
@@ -50,7 +53,7 @@
       padding: 12px 20px;
       font-size: 16px;
       border: none;
-      background-color: #00FFDD; /* 민트색 */
+      background-color: #00FFDD;
       color: black;
       border-radius: 8px;
       cursor: pointer;
@@ -65,25 +68,23 @@
     #result {
       margin-top: 20px;
       font-weight: bold;
-      color: #000000; /* 변경: 검정색 */
+      color: #000000;
     }
 
-    .spinner {
-      margin-top: 10px;
-      border: 4px solid #eee;
-      border-top: 4px solid #00FFDD;
-      border-radius: 50%;
-      width: 28px;
-      height: 28px;
-      animation: spin 1s linear infinite;
-      display: none;
-      margin-left: auto;
-      margin-right: auto;
+    .falling-name {
+      position: absolute;
+      font-size: 18px;
+      font-weight: bold;
+      color: #00FFDD;
+      animation: fall 4s linear forwards;
+      white-space: nowrap;
+      z-index: 1;
     }
 
-    @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
+    @keyframes fall {
+      0% { top: -30px; opacity: 1; }
+      90% { opacity: 1; }
+      100% { top: 100vh; opacity: 0; }
     }
   </style>
 </head>
@@ -93,7 +94,7 @@
     <p>이름을 입력하고 점심 신청 버튼을 눌러주세요!</p>
     <input type="text" id="nameInput" placeholder="예: Isla" />
     <button onclick="submitForm()">점심 신청 🍱</button>
-    <div class="spinner" id="loader"></div>
+    <div class="spinner" id="loader" style="display:none;"></div>
     <div id="result"></div>
   </div>
 
@@ -110,7 +111,7 @@
       }
 
       resultDiv.innerText = "";
-      loader.style.display = "block"; // show loading spinner
+      loader.style.display = "block";
 
       const formData = new FormData();
       formData.append("name", name);
@@ -124,12 +125,31 @@
         loader.style.display = "none";
         resultDiv.innerText = data;
         nameInput.value = "";
+        triggerFallAnimation(name);
       })
       .catch(error => {
         loader.style.display = "none";
         resultDiv.innerText = "문제가 발생했어요 😢 다시 시도해주세요.";
         console.error("Error:", error);
       });
+    }
+
+    function triggerFallAnimation(name) {
+      const fallDiv = document.createElement("div");
+      fallDiv.className = "falling-name";
+      fallDiv.textContent = name;
+
+      // Random x position: left or right side
+      const side = Math.random() > 0.5 ? "left" : "right";
+      const position = Math.random() * 120 + 10; // 10 ~ 130 px
+      fallDiv.style[side] = position + "px";
+      fallDiv.style.top = "-30px";
+
+      document.body.appendChild(fallDiv);
+
+      setTimeout(() => {
+        fallDiv.remove();
+      }, 4000);
     }
   </script>
 </body>
