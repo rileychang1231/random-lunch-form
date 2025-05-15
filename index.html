@@ -111,18 +111,33 @@
     const runner = Runner.create();
     Runner.run(runner, engine);
 
-    const ground = Bodies.rectangle(width / 2, height + 40, width, 80, {
+    
+    // Add walls
+    const wallThickness = 50;
+    const ground = Bodies.rectangle(width / 2, height + wallThickness / 2, width, wallThickness, {
+
       isStatic: true,
       render: { fillStyle: '#111' }
     });
     World.add(world, ground);
+
+    const leftWall = Bodies.rectangle(-wallThickness / 2, height / 2, wallThickness, height * 2, {
+      isStatic: true,
+      render: { visible: false }
+    });
+    const rightWall = Bodies.rectangle(width + wallThickness / 2, height / 2, wallThickness, height * 2, {
+      isStatic: true,
+      render: { visible: false }
+    });
+    World.add(world, [leftWall, rightWall]);
+
 
     function dropName(text) {
       const x = Math.random() * (width - 200) + 100;
       const box = Bodies.rectangle(x, -50, 250, 80, {
         restitution: 0.3,
         render: {
-          fillStyle: '#00FFDD',
+          visible: false,
           strokeStyle: '#ffffff',
           lineWidth: 2,
         }
