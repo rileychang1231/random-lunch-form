@@ -6,44 +6,77 @@
   <title>스푼랩스 랜덤런치 신청</title>
   <style>
     body {
+      margin: 0;
+      padding: 0;
       font-family: 'Helvetica', sans-serif;
-      background-color: #fdfaf6;
+      background-color: #f0fdfb; /* 민트 배경 */
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .card {
+      background-color: #ffffff;
+      padding: 40px;
+      border-radius: 16px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
       text-align: center;
-      padding: 50px;
+      width: 90%;
+      max-width: 400px;
     }
+
     h1 {
-      color: #FF6B6B;
+      color: #FF6B00; /* 주황색 */
+      margin-bottom: 20px;
     }
+
+    p {
+      color: #333;
+      margin-bottom: 30px;
+    }
+
     input[type="text"] {
-      padding: 10px;
-      width: 250px;
+      padding: 12px;
+      width: 100%;
       font-size: 16px;
       border-radius: 8px;
       border: 1px solid #ccc;
+      margin-bottom: 20px;
+      box-sizing: border-box;
     }
+
     button {
-      margin-top: 15px;
-      padding: 10px 20px;
+      padding: 12px 20px;
       font-size: 16px;
       border: none;
-      background-color: #FF6B6B;
+      background-color: #00C9A7; /* 민트색 */
       color: white;
       border-radius: 8px;
       cursor: pointer;
+      width: 100%;
+      transition: background-color 0.3s;
     }
+
+    button:hover {
+      background-color: #00b498;
+    }
+
     #result {
       margin-top: 20px;
       font-weight: bold;
+      color: #000000;
     }
   </style>
 </head>
 <body>
-  <h1>🥗 랜덤런치 신청하기</h1>
-  <p>이름을 입력하고 점심 신청 버튼을 눌러주세요!</p>
-  <input type="text" id="nameInput" placeholder="예: 김스푼" />
-  <br>
-  <button onclick="submitForm()">점심 신청 🍱</button>
-  <div id="result"></div>
+  <div class="card">
+    <h1>🥗 랜덤런치 신청하기</h1>
+    <p>이름을 입력하고 점심 신청 버튼을 눌러주세요!</p>
+    <input type="text" id="nameInput" placeholder="예: 김스푼" />
+    <button onclick="submitForm()">점심 신청 🍱</button>
+    <div id="result"></div>
+  </div>
 
   <script>
     function submitForm() {
