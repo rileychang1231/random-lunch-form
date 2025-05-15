@@ -148,7 +148,10 @@
       const label = emoji + " " + text;
 
       const x = Math.random() * (width - 200) + 100;
-      const box = Bodies.rectangle(x, -50, 180, 50, {
+      
+      const width = 36 * label.length;
+      const box = Bodies.rectangle(x, -50, width, 50, {
+
         restitution: 0.3,
         render: {
           visible: false,
