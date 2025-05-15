@@ -5,42 +5,42 @@
   <meta charset="UTF-8">
   <title>스푼랩스 랜덤런치 신청</title>
   <style>
-    body {
+    html, body {
       margin: 0;
       padding: 0;
-      font-family: 'Helvetica', sans-serif;
-      background-color: #000000;
-      height: 100vh;
+      background-color: #000;
       overflow: hidden;
-      position: relative;
+      font-family: 'Helvetica', sans-serif;
     }
-
     .card {
       position: absolute;
-      left: 50%;
       top: 50%;
+      left: 50%;
       transform: translate(-50%, -50%);
-      background-color: #ffffff;
-      padding: 40px;
-      border-radius: 16px;
-      text-align: center;
+      background: #fff;
+      padding: 30px;
+      border-radius: 12px;
       width: 90%;
       max-width: 400px;
+      text-align: center;
       z-index: 10;
     }
-
-    h1 { color: #FF6B00; margin-bottom: 20px; }
-    p { color: #333; margin-bottom: 30px; }
-
+    h1 {
+      color: #FF6B00;
+    }
+    p {
+      color: #333;
+    }
     input[type="text"] {
       padding: 12px;
       width: 100%;
       font-size: 16px;
       border-radius: 8px;
       border: 1px solid #ccc;
+      margin-top: 15px;
       margin-bottom: 20px;
+      box-sizing: border-box;
     }
-
     button {
       padding: 12px 20px;
       font-size: 16px;
@@ -51,19 +51,11 @@
       cursor: pointer;
       width: 100%;
     }
-
     button:hover {
       background-color: #00e6c7;
     }
-
-    #result {
-      margin-top: 20px;
-      font-weight: bold;
-      color: #000000;
-    }
-
     .spinner {
-      margin: 10px auto 0;
+      margin: 10px auto;
       border: 4px solid #eee;
       border-top: 4px solid #00FFDD;
       border-radius: 50%;
@@ -72,20 +64,14 @@
       animation: spin 1s linear infinite;
       display: none;
     }
-
     @keyframes spin {
       0% { transform: rotate(0deg); }
       100% { transform: rotate(360deg); }
     }
-
-    .falling-name {
+    canvas {
       position: absolute;
-      font-size: 20px;
-      font-weight: 400;
-      color: #ffffff;
-      animation: fall linear forwards;
-      white-space: nowrap;
-      z-index: 1;
+      top: 0;
+      left: 0;
     }
   </style>
 </head>
@@ -96,53 +82,79 @@
     <input type="text" id="nameInput" placeholder="예: Isla" />
     <button onclick="submitForm()">점심 신청 🍱</button>
     <div class="spinner" id="loader"></div>
-    <div id="result"></div>
+    <div id="result" style="margin-top: 10px;"></div>
   </div>
 
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.19.0/matter.min.js"></script>
   <script>
     const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/1X0oWxxP0XuxRnw32x7vfp10U5UuZYj_KHi5rY1xftDk/gviz/tq?tqx=out:csv";
-    const fallSpeed = 1.2; // lower is slower
-    const groundLevel = window.innerHeight - 40;
-    const stackingMap = {}; // x position bucket → current y
 
-    function triggerFallAnimation(name, alsoStack = true) {
-      const el = document.createElement("div");
-      el.className = "falling-name";
-      el.textContent = name;
+    const { Engine, Render, Runner, World, Bodies, Events } = Matter;
+    const engine = Engine.create();
+    const world = engine.world;
 
-      // left or right
-      const side = Math.random() > 0.5 ? "left" : "right";
-      const left = Math.floor(Math.random() * (window.innerWidth - 100));
-      el.style.left = left + "px";
-      el.style.top = "0px";
+    const width = window.innerWidth;
+    const height = window.innerHeight;
 
-      document.body.appendChild(el);
+    const render = Render.create({
+      element: document.body,
+      engine: engine,
+      options: {
+        width: width,
+        height: height,
+        wireframes: false,
+        background: '#000'
+      }
+    });
 
-      // simulate fall
-      let top = 0;
-      let interval = setInterval(() => {
-        top += fallSpeed * 4;
-        const key = Math.floor(left / 100);
-        let floor = stackingMap[key] || groundLevel;
+    Render.run(render);
+    const runner = Runner.create();
+    Runner.run(runner, engine);
 
-        if (top + 24 >= floor) {
-          clearInterval(interval);
-          top = floor - 24;
-          stackingMap[key] = floor - 24;
-          el.style.top = top + "px";
-        } else {
-          el.style.top = top + "px";
+    const ground = Bodies.rectangle(width / 2, height + 40, width, 80, {
+      isStatic: true,
+      render: { fillStyle: '#111' }
+    });
+    World.add(world, ground);
+
+    function dropName(text) {
+      const x = Math.random() * (width - 200) + 100;
+      const box = Bodies.rectangle(x, -50, 250, 80, {
+        restitution: 0.3,
+        render: {
+          fillStyle: '#00FFDD',
+          strokeStyle: '#ffffff',
+          lineWidth: 2,
         }
-      }, 16);
+      });
+      box.label = text;
+      World.add(world, box);
     }
 
-    function addToSheet(name) {
-      const formData = new FormData();
-      formData.append("name", name);
-      return fetch("https://script.google.com/macros/s/AKfycbxXQUwWoceim4onBNRFM27hJKJy4RWO0Rp3cO237pxHwUXxQAzZQnyigRviS1PxVdLSZQ/exec", {
-        method: "POST",
-        body: formData
+    Events.on(render, "afterRender", () => {
+      const ctx = render.context;
+      ctx.font = "bold 54px sans-serif";
+      ctx.fillStyle = "#ffffff";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+
+      world.bodies.forEach(body => {
+        if (body.label && body.label !== "Rectangle Body") {
+          ctx.fillText(body.label, body.position.x, body.position.y);
+        }
       });
+    });
+
+    async function loadExistingNames() {
+      const res = await fetch(SHEET_CSV_URL);
+      const text = await res.text();
+      const rows = text.trim().split("\n").slice(1);
+      const names = rows.map(row => row.split(",")[1].replace(/^"|"$/g, '')).filter(Boolean);
+      let i = 0;
+      const interval = setInterval(() => {
+        if (i >= names.length) clearInterval(interval);
+        else dropName(names[i++]);
+      }, 800);
     }
 
     function submitForm() {
@@ -159,36 +171,25 @@
       resultDiv.innerText = "";
       loader.style.display = "block";
 
-      addToSheet(name)
-        .then(response => response.text())
-        .then(data => {
-          loader.style.display = "none";
-          resultDiv.innerText = data;
-          nameInput.value = "";
-          triggerFallAnimation(name, true);
-        })
-        .catch(error => {
-          loader.style.display = "none";
-          resultDiv.innerText = "문제가 발생했어요 😢 다시 시도해주세요.";
-          console.error("Error:", error);
-        });
-    }
+      const formData = new FormData();
+      formData.append("name", name);
 
-    async function loadExistingNames() {
-      const res = await fetch(SHEET_CSV_URL);
-      const text = await res.text();
-      const rows = text.trim().split("\n").slice(1);
-      const names = rows.map(row => row.split(",")[1].replace(/^"|"$/g, '')).filter(Boolean);
-
-      let i = 0;
-      const interval = setInterval(() => {
-        if (i >= names.length) {
-          clearInterval(interval);
-        } else {
-          triggerFallAnimation(names[i], true);
-          i++;
-        }
-      }, 600);
+      fetch("https://script.google.com/macros/s/AKfycbxXQUwWoceim4onBNRFM27hJKJy4RWO0Rp3cO237pxHwUXxQAzZQnyigRviS1PxVdLSZQ/exec", {
+        method: "POST",
+        body: formData
+      })
+      .then(response => response.text())
+      .then(data => {
+        loader.style.display = "none";
+        resultDiv.innerText = data;
+        nameInput.value = "";
+        dropName(name);
+      })
+      .catch(error => {
+        loader.style.display = "none";
+        resultDiv.innerText = "문제가 발생했어요 😢 다시 시도해주세요.";
+        console.error("Error:", error);
+      });
     }
 
     window.onload = loadExistingNames;
