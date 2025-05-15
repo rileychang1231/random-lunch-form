@@ -9,7 +9,7 @@
       margin: 0;
       padding: 0;
       font-family: 'Helvetica', sans-serif;
-      background-color: #f0fdfb; /* 민트 배경 */
+      background-color: #000000; /* 배경: 검정색 */
       height: 100vh;
       display: flex;
       align-items: center;
@@ -20,7 +20,7 @@
       background-color: #ffffff;
       padding: 40px;
       border-radius: 16px;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+      box-shadow: 0 10px 30px rgba(255, 255, 255, 0.1);
       text-align: center;
       width: 90%;
       max-width: 400px;
@@ -50,8 +50,8 @@
       padding: 12px 20px;
       font-size: 16px;
       border: none;
-      background-color: #00C9A7; /* 민트색 */
-      color: white;
+      background-color: #00FFDD; /* 민트색 */
+      color: black;
       border-radius: 8px;
       cursor: pointer;
       width: 100%;
@@ -59,13 +59,13 @@
     }
 
     button:hover {
-      background-color: #00b498;
+      background-color: #00e6c7;
     }
 
     #result {
       margin-top: 20px;
       font-weight: bold;
-      color: #000000;
+      color: #ffffff;
     }
   </style>
 </head>
@@ -73,7 +73,7 @@
   <div class="card">
     <h1>🥗 랜덤런치 신청하기</h1>
     <p>이름을 입력하고 점심 신청 버튼을 눌러주세요!</p>
-    <input type="text" id="nameInput" placeholder="예: 김스푼" />
+    <input type="text" id="nameInput" placeholder="예: Isla" />
     <button onclick="submitForm()">점심 신청 🍱</button>
     <div id="result"></div>
   </div>
