@@ -12,33 +12,25 @@
       background-color: #000000;
       height: 100vh;
       overflow: hidden;
-      display: flex;
-      align-items: center;
-      justify-content: center;
       position: relative;
-      flex-direction: column;
     }
 
     .card {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
       background-color: #ffffff;
       padding: 40px;
       border-radius: 16px;
-      box-shadow: 0 10px 30px rgba(255, 255, 255, 0.1);
       text-align: center;
       width: 90%;
       max-width: 400px;
       z-index: 10;
     }
 
-    h1 {
-      color: #FF6B00;
-      margin-bottom: 20px;
-    }
-
-    p {
-      color: #333;
-      margin-bottom: 30px;
-    }
+    h1 { color: #FF6B00; margin-bottom: 20px; }
+    p { color: #333; margin-bottom: 30px; }
 
     input[type="text"] {
       padding: 12px;
@@ -47,7 +39,6 @@
       border-radius: 8px;
       border: 1px solid #ccc;
       margin-bottom: 20px;
-      box-sizing: border-box;
     }
 
     button {
@@ -59,7 +50,6 @@
       border-radius: 8px;
       cursor: pointer;
       width: 100%;
-      transition: background-color 0.3s;
     }
 
     button:hover {
@@ -70,41 +60,6 @@
       margin-top: 20px;
       font-weight: bold;
       color: #000000;
-    }
-
-    .falling-name {
-      position: absolute;
-      font-size: 24px;
-      font-weight: bold;
-      color: #ffffff;
-      animation: fall 2.5s ease-in forwards;
-      white-space: nowrap;
-      z-index: 1;
-    }
-
-    @keyframes fall {
-      0% { top: -40px; opacity: 1; }
-      100% { top: calc(100vh - 60px); opacity: 1; }
-    }
-
-    .stack-area {
-      position: absolute;
-      bottom: 10px;
-      width: 100%;
-      display: flex;
-      justify-content: center;
-      flex-wrap: wrap;
-      gap: 8px;
-      padding: 0 20px;
-    }
-
-    .stack-name {
-      font-size: 16px;
-      font-weight: bold;
-      color: #ffffff;
-      background-color: #00FFDD33;
-      padding: 6px 12px;
-      border-radius: 6px;
     }
 
     .spinner {
@@ -122,6 +77,16 @@
       0% { transform: rotate(0deg); }
       100% { transform: rotate(360deg); }
     }
+
+    .falling-name {
+      position: absolute;
+      font-size: 20px;
+      font-weight: 400;
+      color: #ffffff;
+      animation: fall linear forwards;
+      white-space: nowrap;
+      z-index: 1;
+    }
   </style>
 </head>
 <body>
@@ -134,39 +99,55 @@
     <div id="result"></div>
   </div>
 
-  <div class="stack-area" id="stackArea"></div>
-
   <script>
     const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/1X0oWxxP0XuxRnw32x7vfp10U5UuZYj_KHi5rY1xftDk/gviz/tq?tqx=out:csv";
+    const fallSpeed = 1.2; // lower is slower
+    const groundLevel = window.innerHeight - 40;
+    const stackingMap = {}; // x position bucket → current y
 
     function triggerFallAnimation(name, alsoStack = true) {
-      const fallDiv = document.createElement("div");
-      fallDiv.className = "falling-name";
-      fallDiv.textContent = name;
+      const el = document.createElement("div");
+      el.className = "falling-name";
+      el.textContent = name;
 
+      // left or right
       const side = Math.random() > 0.5 ? "left" : "right";
-      const position = Math.random() * 120 + 10;
-      fallDiv.style[side] = position + "px";
-      fallDiv.style.top = "-40px";
+      const left = Math.floor(Math.random() * (window.innerWidth - 100));
+      el.style.left = left + "px";
+      el.style.top = "0px";
 
-      document.body.appendChild(fallDiv);
-      setTimeout(() => {
-        fallDiv.remove();
-        if (alsoStack) addToStack(name);
-      }, 2500);
+      document.body.appendChild(el);
+
+      // simulate fall
+      let top = 0;
+      let interval = setInterval(() => {
+        top += fallSpeed * 4;
+        const key = Math.floor(left / 100);
+        let floor = stackingMap[key] || groundLevel;
+
+        if (top + 24 >= floor) {
+          clearInterval(interval);
+          top = floor - 24;
+          stackingMap[key] = floor - 24;
+          el.style.top = top + "px";
+        } else {
+          el.style.top = top + "px";
+        }
+      }, 16);
     }
 
-    function addToStack(name) {
-      const stackArea = document.getElementById("stackArea");
-      const tag = document.createElement("div");
-      tag.className = "stack-name";
-      tag.textContent = name;
-      stackArea.appendChild(tag);
+    function addToSheet(name) {
+      const formData = new FormData();
+      formData.append("name", name);
+      return fetch("https://script.google.com/macros/s/AKfycbxXQUwWoceim4onBNRFM27hJKJy4RWO0Rp3cO237pxHwUXxQAzZQnyigRviS1PxVdLSZQ/exec", {
+        method: "POST",
+        body: formData
+      });
     }
 
     function submitForm() {
       const nameInput = document.getElementById("nameInput");
-      const name = nameInput.value;
+      const name = nameInput.value.trim();
       const resultDiv = document.getElementById("result");
       const loader = document.getElementById("loader");
 
@@ -178,25 +159,19 @@
       resultDiv.innerText = "";
       loader.style.display = "block";
 
-      const formData = new FormData();
-      formData.append("name", name);
-
-      fetch("https://script.google.com/macros/s/AKfycbxXQUwWoceim4onBNRFM27hJKJy4RWO0Rp3cO237pxHwUXxQAzZQnyigRviS1PxVdLSZQ/exec", {
-        method: "POST",
-        body: formData
-      })
-      .then(response => response.text())
-      .then(data => {
-        loader.style.display = "none";
-        resultDiv.innerText = data;
-        nameInput.value = "";
-        triggerFallAnimation(name, true);
-      })
-      .catch(error => {
-        loader.style.display = "none";
-        resultDiv.innerText = "문제가 발생했어요 😢 다시 시도해주세요.";
-        console.error("Error:", error);
-      });
+      addToSheet(name)
+        .then(response => response.text())
+        .then(data => {
+          loader.style.display = "none";
+          resultDiv.innerText = data;
+          nameInput.value = "";
+          triggerFallAnimation(name, true);
+        })
+        .catch(error => {
+          loader.style.display = "none";
+          resultDiv.innerText = "문제가 발생했어요 😢 다시 시도해주세요.";
+          console.error("Error:", error);
+        });
     }
 
     async function loadExistingNames() {
@@ -213,7 +188,7 @@
           triggerFallAnimation(names[i], true);
           i++;
         }
-      }, 700);
+      }, 600);
     }
 
     window.onload = loadExistingNames;
