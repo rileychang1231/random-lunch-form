@@ -16,6 +16,7 @@
       align-items: center;
       justify-content: center;
       position: relative;
+      flex-direction: column;
     }
 
     .card {
@@ -73,18 +74,53 @@
 
     .falling-name {
       position: absolute;
-      font-size: 18px;
+      font-size: 24px;
       font-weight: bold;
-      color: #00FFDD;
-      animation: fall 4s linear forwards;
+      color: #ffffff;
+      animation: fall 2.5s ease-in forwards;
       white-space: nowrap;
       z-index: 1;
     }
 
     @keyframes fall {
-      0% { top: -30px; opacity: 1; }
-      90% { opacity: 1; }
-      100% { top: 100vh; opacity: 0; }
+      0% { top: -40px; opacity: 1; }
+      100% { top: calc(100vh - 60px); opacity: 1; }
+    }
+
+    .stack-area {
+      position: absolute;
+      bottom: 10px;
+      width: 100%;
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 8px;
+      padding: 0 20px;
+    }
+
+    .stack-name {
+      font-size: 16px;
+      font-weight: bold;
+      color: #ffffff;
+      background-color: #00FFDD33;
+      padding: 6px 12px;
+      border-radius: 6px;
+    }
+
+    .spinner {
+      margin: 10px auto 0;
+      border: 4px solid #eee;
+      border-top: 4px solid #00FFDD;
+      border-radius: 50%;
+      width: 28px;
+      height: 28px;
+      animation: spin 1s linear infinite;
+      display: none;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
     }
   </style>
 </head>
@@ -94,14 +130,16 @@
     <p>이름을 입력하고 점심 신청 버튼을 눌러주세요!</p>
     <input type="text" id="nameInput" placeholder="예: Isla" />
     <button onclick="submitForm()">점심 신청 🍱</button>
-    <div class="spinner" id="loader" style="display:none;"></div>
+    <div class="spinner" id="loader"></div>
     <div id="result"></div>
   </div>
+
+  <div class="stack-area" id="stackArea"></div>
 
   <script>
     const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/1X0oWxxP0XuxRnw32x7vfp10U5UuZYj_KHi5rY1xftDk/gviz/tq?tqx=out:csv";
 
-    function triggerFallAnimation(name) {
+    function triggerFallAnimation(name, alsoStack = true) {
       const fallDiv = document.createElement("div");
       fallDiv.className = "falling-name";
       fallDiv.textContent = name;
@@ -109,10 +147,21 @@
       const side = Math.random() > 0.5 ? "left" : "right";
       const position = Math.random() * 120 + 10;
       fallDiv.style[side] = position + "px";
-      fallDiv.style.top = "-30px";
+      fallDiv.style.top = "-40px";
 
       document.body.appendChild(fallDiv);
-      setTimeout(() => fallDiv.remove(), 4000);
+      setTimeout(() => {
+        fallDiv.remove();
+        if (alsoStack) addToStack(name);
+      }, 2500);
+    }
+
+    function addToStack(name) {
+      const stackArea = document.getElementById("stackArea");
+      const tag = document.createElement("div");
+      tag.className = "stack-name";
+      tag.textContent = name;
+      stackArea.appendChild(tag);
     }
 
     function submitForm() {
@@ -141,7 +190,7 @@
         loader.style.display = "none";
         resultDiv.innerText = data;
         nameInput.value = "";
-        triggerFallAnimation(name);
+        triggerFallAnimation(name, true);
       })
       .catch(error => {
         loader.style.display = "none";
@@ -153,7 +202,7 @@
     async function loadExistingNames() {
       const res = await fetch(SHEET_CSV_URL);
       const text = await res.text();
-      const rows = text.trim().split("\n").slice(1); // Skip header
+      const rows = text.trim().split("\n").slice(1);
       const names = rows.map(row => row.split(",")[1].replace(/^"|"$/g, '')).filter(Boolean);
 
       let i = 0;
@@ -161,10 +210,10 @@
         if (i >= names.length) {
           clearInterval(interval);
         } else {
-          triggerFallAnimation(names[i]);
+          triggerFallAnimation(names[i], true);
           i++;
         }
-      }, 600);
+      }, 700);
     }
 
     window.onload = loadExistingNames;
