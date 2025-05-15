@@ -111,24 +111,11 @@
     const runner = Runner.create();
     Runner.run(runner, engine);
 
-    
-    
-    // Add form-blocking wall behind the form
-    const formBlock = Bodies.rectangle(width / 2, height / 2, 460, 320, {
-      isStatic: true,
-      render: { visible: false }
-    });
-    World.add(world, formBlock);
-
-    // Add walls
-
     const wallThickness = 50;
     const ground = Bodies.rectangle(width / 2, height + wallThickness / 2, width, wallThickness, {
-
       isStatic: true,
       render: { fillStyle: '#111' }
     });
-    World.add(world, ground);
 
     const leftWall = Bodies.rectangle(-wallThickness / 2, height / 2, wallThickness, height * 2, {
       isStatic: true,
@@ -138,29 +125,22 @@
       isStatic: true,
       render: { visible: false }
     });
-    World.add(world, [leftWall, rightWall]);
+    const formBlock = Bodies.rectangle(width / 2, height / 2, 460, 320, {
+      isStatic: true,
+      render: { visible: false }
+    });
 
+    World.add(world, [ground, leftWall, rightWall, formBlock]);
 
-    
     const emojis = ["🍣", "🍔", "🍕", "🍙", "🌮", "🥪", "🍱", "🍜", "🍤", "🥟", "🧁", "🍩"];
+
     function dropName(text) {
       const emoji = emojis[Math.floor(Math.random() * emojis.length)];
       const label = emoji + " " + text;
-
-      const x = Math.random() * (width - 200) + 100;
-      
-      const width = 36 * label.length;
-      
-      const safeX = Math.max(100, Math.min(x, window.innerWidth - 100));
-      const box = Bodies.rectangle(safeX, -50, width, 50, {
-
-
+      const x = Math.random() * (window.innerWidth - 200) + 100;
+      const box = Bodies.rectangle(x, -50, 180, 50, {
         restitution: 0.3,
-        render: {
-          visible: false,
-          strokeStyle: '#ffffff',
-          lineWidth: 2,
-        }
+        render: { visible: false }
       });
       box.label = label;
       World.add(world, box);
