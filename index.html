@@ -150,7 +150,10 @@
       const x = Math.random() * (width - 200) + 100;
       
       const width = 36 * label.length;
-      const box = Bodies.rectangle(x, -50, width, 50, {
+      
+      const safeX = Math.max(100, Math.min(x, window.innerWidth - 100));
+      const box = Bodies.rectangle(safeX, -50, width, 50, {
+
 
         restitution: 0.3,
         render: {
