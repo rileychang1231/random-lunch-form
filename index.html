@@ -112,7 +112,16 @@
     Runner.run(runner, engine);
 
     
+    
+    // Add form-blocking wall behind the form
+    const formBlock = Bodies.rectangle(width / 2, height / 2, 400, 240, {
+      isStatic: true,
+      render: { visible: false }
+    });
+    World.add(world, formBlock);
+
     // Add walls
+
     const wallThickness = 50;
     const ground = Bodies.rectangle(width / 2, height + wallThickness / 2, width, wallThickness, {
 
@@ -132,9 +141,14 @@
     World.add(world, [leftWall, rightWall]);
 
 
+    
+    const emojis = ["🍣", "🍔", "🍕", "🍙", "🌮", "🥪", "🍱", "🍜", "🍤", "🥟", "🧁", "🍩"];
     function dropName(text) {
+      const emoji = emojis[Math.floor(Math.random() * emojis.length)];
+      const label = emoji + " " + text;
+
       const x = Math.random() * (width - 200) + 100;
-      const box = Bodies.rectangle(x, -50, 250, 80, {
+      const box = Bodies.rectangle(x, -50, 180, 50, {
         restitution: 0.3,
         render: {
           visible: false,
@@ -142,13 +156,13 @@
           lineWidth: 2,
         }
       });
-      box.label = text;
+      box.label = label;
       World.add(world, box);
     }
 
     Events.on(render, "afterRender", () => {
       const ctx = render.context;
-      ctx.font = "bold 54px sans-serif";
+      ctx.font = "bold 36px sans-serif";
       ctx.fillStyle = "#ffffff";
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
