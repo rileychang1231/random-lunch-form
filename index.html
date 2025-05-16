@@ -3,12 +3,12 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8" />
-  <title>스푼랩스 랜덤런치 신청</title>
+  <title>스푼랩스 랜런 신청</title>
   <style>
     html, body {
       margin: 0;
       padding: 0;
-      background-color: #000;
+      background: #000;
       font-family: 'Helvetica', sans-serif;
       overflow: hidden;
     }
@@ -66,9 +66,39 @@
       cursor: pointer;
       width: 100%;
     }
-    #result {
-      margin-top: 12px;
-      font-weight: bold;
+    .cancel-box {
+      position: absolute;
+      bottom: 30px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #111;
+      padding: 20px;
+      border-radius: 10px;
+      color: white;
+      text-align: center;
+      width: 90%;
+      max-width: 400px;
+      z-index: 10;
+    }
+    .cancel-input {
+      overflow: hidden;
+      max-height: 0;
+      opacity: 0;
+      transition: all 0.4s ease;
+    }
+    .cancel-input.show {
+      max-height: 120px;
+      opacity: 1;
+      margin-top: 10px;
+    }
+    .cancel-box button {
+      background-color: #ccc;
+      color: black;
+    }
+    .cancel-box input,
+    .cancel-box .cancel-input button {
+      background-color: #333;
+      color: white;
     }
     .spinner {
       margin: 10px auto;
@@ -84,85 +114,195 @@
       0% { transform: rotate(0deg); }
       100% { transform: rotate(360deg); }
     }
+    #result {
+      margin-top: 12px;
+      font-weight: bold;
+    }
+    canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+    }
   </style>
 </head>
 <body>
-  <div class="card">
-    <h1>🥗 랜덤런치 신청하기</h1>
-    <div class="mode-select">
-      <button onclick="selectMode('solo')">🙋 혼자 신청할래요</button>
-      <button onclick="selectMode('pair')">👯 같이 신청할래요</button>
-    </div>
-
-    <div id="solo-form" class="form-block">
-      <input type="text" id="soloName" placeholder="이름 (예: Isla)" />
-      <button class="submit" onclick="submitSolo()">신청하기 🍱</button>
-    </div>
-
-    <div id="pair-form" class="form-block">
-      <input type="text" id="pairName" placeholder="내 이름 (예: Isla)" />
-      <input type="text" id="partnerName" placeholder="같이 신청할 사람 (예: Claire)" />
-      <button class="submit" onclick="submitPair()">함께 신청하기 👯</button>
-    </div>
-
-    <div class="spinner" id="loader"></div>
-    <div id="result"></div>
+<canvas></canvas>
+<div class="card">
+  <h1>🥗 랜덤런치 신청하기</h1>
+  <div class="mode-select">
+    <button onclick="selectMode('solo')">🙋 혼자 신청</button>
+    <button onclick="selectMode('pair')">👯 같이 신청</button>
   </div>
+  <div id="solo-form" class="form-block">
+    <input type="text" id="soloName" placeholder="이름 (예: Isla)" />
+    <button class="submit" onclick="submitSolo()">신청 🍱</button>
+  </div>
+  <div id="pair-form" class="form-block">
+    <input type="text" id="pairName" placeholder="내 이름 (예: Isla)" />
+    <input type="text" id="partnerName" placeholder="같이 신청할 사람 (예: Claire)" />
+    <button class="submit" onclick="submitPair()">함께 신청 👯</button>
+  </div>
+  <div class="spinner" id="loader"></div>
+  <div id="result"></div>
+</div>
 
-  <script>
-    const GAS_URL = "https://script.google.com/macros/s/AKfycbx-4G1aI142_nQSX_KXs0g-wLMEwDJ24G0bOJ-WPgJ96txiNF-dL3wxr2Ww8lCOHXSj/exec";
+<div class="cancel-box">
+  <p>신청을 잘못하셨나요?</p>
+  <button onclick="toggleCancel()">신청 취소하기 ❌</button>
+  <div class="cancel-input" id="cancelInputWrap">
+    <input type="text" id="cancelName" placeholder="이름 (예: Isla)" />
+    <button onclick="cancelForm()">진짜 취소 😢</button>
+  </div>
+  <div id="cancelResult" style="margin-top: 10px; color: #0ff;"></div>
+</div>
 
-    function selectMode(mode) {
-      document.getElementById("solo-form").classList.remove("active");
-      document.getElementById("pair-form").classList.remove("active");
-      document.getElementById("loader").style.display = "none";
-      document.getElementById("result").innerText = "";
-      document.getElementById(mode + "-form").classList.add("active");
-    }
+<script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.19.0/matter.min.js"></script>
+<script>
+const GAS_URL = "https://script.google.com/macros/s/AKfycbx-4G1aI142_nQSX_KXs0g-wLMEwDJ24G0bOJ-WPgJ96txiNF-dL3wxr2Ww8lCOHXSj/exec";
+const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/1X0oWxxP0XuxRnw32x7vfp10U5UuZYj_KHi5rY1xftDk/gviz/tq?tqx=out:csv";
 
-    function submitSolo() {
-      const name = document.getElementById("soloName").value.trim();
-      if (!name) return alert("이름을 입력해주세요!");
-      submitToSheet(name, "");
-    }
+const { Engine, Render, Runner, World, Bodies, Events } = Matter;
+const engine = Engine.create();
+const world = engine.world;
 
-    function submitPair() {
-      const name = document.getElementById("pairName").value.trim();
-      const partner = document.getElementById("partnerName").value.trim();
-      if (!name || !partner) return alert("두 분의 이름을 모두 입력해주세요!");
-      submitToSheet(name, partner);
-    }
+const width = window.innerWidth;
+const height = window.innerHeight;
+const render = Render.create({
+  element: document.body,
+  engine: engine,
+  options: {{
+    width: width,
+    height: height,
+    wireframes: false,
+    background: '#000'
+  }}
+});
+Render.run(render);
+Runner.run(Runner.create(), engine);
 
-    function submitToSheet(name, partner) {
-      const resultDiv = document.getElementById("result");
-      const loader = document.getElementById("loader");
+const ground = Bodies.rectangle(width / 2, height + 25, width, 50, {{ isStatic: true }});
+const leftWall = Bodies.rectangle(-25, height / 2, 50, height, {{ isStatic: true }});
+const rightWall = Bodies.rectangle(width + 25, height / 2, 50, height, {{ isStatic: true }});
+const formBlock = Bodies.rectangle(width / 2, height / 2, 460, 320, {{ isStatic: true }});
+World.add(world, [ground, leftWall, rightWall, formBlock]);
 
-      resultDiv.innerText = "";
-      loader.style.display = "block";
+const emojis = ["🍣","🍔","🍕","🍙","🌮","🥪","🍱","🍜","🍤","🥟","🧁","🍩"];
 
-      const formData = new FormData();
-      formData.append("name", name);
-      formData.append("partner", partner);
+function dropName(text) {{
+  const emoji = emojis[Math.floor(Math.random() * emojis.length)];
+  const label = emoji + " " + text;
+  const x = Math.random() * (window.innerWidth - 200) + 100;
+  const box = Bodies.rectangle(x, -50, 180, 50, {{ restitution: 0.3, render: {{ visible: false }} }});
+  box.label = label;
+  World.add(world, box);
+}}
 
-      fetch(GAS_URL, {
-        method: "POST",
-        body: formData
-      })
-      .then(res => res.text())
-      .then(text => {
-        loader.style.display = "none";
-        resultDiv.innerText = text;
-      })
-      .catch(err => {
-        loader.style.display = "none";
-        resultDiv.innerText = "오류가 발생했습니다. 다시 시도해주세요 😢";
-      });
-    }
+Events.on(render, "afterRender", () => {{
+  const ctx = render.context;
+  ctx.font = "bold 36px sans-serif";
+  ctx.fillStyle = "#ffffff";
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  world.bodies.forEach(body => {{
+    if (body.label && body.label !== "Rectangle Body") {{
+      ctx.fillText(body.label, body.position.x, body.position.y);
+    }}
+  }});
+}});
 
-    // 기본값은 solo로
-    window.onload = () => {
-      selectMode('solo');
-    }
-  </script>
+function selectMode(mode) {{
+  document.getElementById("solo-form").classList.remove("active");
+  document.getElementById("pair-form").classList.remove("active");
+  document.getElementById("loader").style.display = "none";
+  document.getElementById("result").innerText = "";
+  document.getElementById(mode + "-form").classList.add("active");
+}}
+
+function submitSolo() {{
+  const name = document.getElementById("soloName").value.trim();
+  if (!name) return alert("이름을 입력해주세요!");
+  submitToSheet(name, "");
+}}
+
+function submitPair() {{
+  const name = document.getElementById("pairName").value.trim();
+  const partner = document.getElementById("partnerName").value.trim();
+  if (!name || !partner) return alert("두 분의 이름을 모두 입력해주세요!");
+  submitToSheet(name, partner);
+  dropName(partner);  // 같이 신청한 친구도 떨어뜨림
+}}
+
+function submitToSheet(name, partner) {{
+  const resultDiv = document.getElementById("result");
+  const loader = document.getElementById("loader");
+
+  resultDiv.innerText = "";
+  loader.style.display = "block";
+
+  const formData = new FormData();
+  formData.append("name", name);
+  formData.append("partner", partner);
+
+  fetch(GAS_URL, {{
+    method: "POST",
+    body: formData
+  }})
+  .then(res => res.text())
+  .then(text => {{
+    loader.style.display = "none";
+    resultDiv.innerText = text;
+    dropName(name);
+  }})
+  .catch(err => {{
+    loader.style.display = "none";
+    resultDiv.innerText = "오류가 발생했습니다. 다시 시도해주세요 😢";
+  }});
+}}
+
+function toggleCancel() {{
+  const wrap = document.getElementById("cancelInputWrap");
+  wrap.classList.toggle("show");
+}}
+
+function cancelForm() {{
+  const name = document.getElementById("cancelName").value.trim();
+  const cancelDiv = document.getElementById("cancelResult");
+  if (!name) return alert("이름을 입력해주세요!");
+
+  const formData = new FormData();
+  formData.append("name", name);
+  formData.append("action", "delete");
+
+  fetch(GAS_URL, {{
+    method: "POST",
+    body: formData
+  }})
+  .then(res => res.text())
+  .then(msg => {{
+    cancelDiv.innerText = msg;
+    const toRemove = world.bodies.find(b => b.label && b.label.toLowerCase().includes(name.toLowerCase()));
+    if (toRemove) {{
+      World.remove(world, toRemove);
+    }}
+    document.getElementById("cancelName").value = "";
+  }})
+  .catch(err => {{
+    cancelDiv.innerText = "취소 중 오류 발생 😢";
+  }});
+}}
+
+window.onload = async () => {{
+  selectMode('solo');
+  const res = await fetch(SHEET_CSV_URL);
+  const text = await res.text();
+  const rows = text.trim().split("\n").slice(1);
+  const names = rows.map(row => row.split(",")[1].replace(/^"|"$/g, '')).filter(Boolean);
+  let i = 0;
+  const interval = setInterval(() => {{
+    if (i >= names.length) clearInterval(interval);
+    else dropName(names[i++]);
+  }}, 600);
+}};
+</script>
 </body>
 </html>
