@@ -3,7 +3,15 @@
 <head>
   <meta charset="UTF-8" />
   <title>스푼랩스 랜런 신청</title>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.19.0/matter.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.19.0/matter.min.js">
+let currentGroupCharCode = '가'.charCodeAt(0);
+function nextGroupCode() {
+  const code = String.fromCharCode(currentGroupCharCode);
+  currentGroupCharCode++;
+  if (currentGroupCharCode > '힣'.charCodeAt(0)) currentGroupCharCode = '가'.charCodeAt(0);
+  return code;
+}
+</script>
   <style>
     html, body {
       margin: 0; padding: 0;
@@ -230,6 +238,14 @@ window.onload = async () => {
     else dropName(names[i++]);
   }, 600);
 };
+
+let currentGroupCharCode = '가'.charCodeAt(0);
+function nextGroupCode() {
+  const code = String.fromCharCode(currentGroupCharCode);
+  currentGroupCharCode++;
+  if (currentGroupCharCode > '힣'.charCodeAt(0)) currentGroupCharCode = '가'.charCodeAt(0);
+  return code;
+}
 </script>
 </body>
 </html>
