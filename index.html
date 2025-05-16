@@ -173,25 +173,18 @@ function selectMode(mode) {
   document.getElementById("result").innerText = "";
   document.getElementById(mode + "-form").classList.add("active");
 }
+
+
 function submitSolo() {
   const name = document.getElementById("soloName").value.trim();
-  if (!name) return alert("이름을 입력해주세요!");
-  submitToSheet(name, "");
-}
-
-function submitPair() {
-  const name = document.getElementById("pairName").value.trim();
-  const partner = document.getElementById("partnerName").value.trim();
-  if (!name || !partner) {
-    alert("두 분의 이름을 모두 입력해주세요!");
+  if (!name) {
+    alert("이름을 입력해주세요!");
     return;
   }
 
-  const group = nextGroupCode(); // 가, 나, 다...
-  const labeledNames = [group + name, group + partner];
-
   const formData = new FormData();
-  formData.append("names", labeledNames.join(","));
+  formData.append("names", name);
+
 
   document.getElementById("loader").style.display = "block";
   document.getElementById("result").innerText = "";
@@ -201,9 +194,15 @@ function submitPair() {
     .then(text => {
       document.getElementById("loader").style.display = "none";
       document.getElementById("result").innerText = text;
-      dropName(name);
-      dropName(partner);
+      dropName(name.replace(/^[가-힣]/, ""));
     })
+    .catch(err => {
+      console.error("❌ 요청 실패:", err);
+      document.getElementById("loader").style.display = "none";
+      document.getElementById("result").innerText = "오류 발생 😢 다시 시도해주세요.";
+    });
+}
+)
     .catch(err => {
       console.error("❌ 요청 실패:", err);
       document.getElementById("loader").style.display = "none";
@@ -244,7 +243,7 @@ window.onload = async () => {
   let i = 0;
   const interval = setInterval(() => {
     if (i >= names.length) clearInterval(interval);
-    else dropName(names[i++]);
+    else dropName(names[i++].replace(/^[가-힣]/, ""));
   }, 600);
 };
 
