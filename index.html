@@ -2,15 +2,15 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>스푼랩스 랜덤런치 신청</title>
   <style>
     html, body {
       margin: 0;
       padding: 0;
       background-color: #000;
-      overflow: hidden;
       font-family: 'Helvetica', sans-serif;
+      overflow: hidden;
     }
     .card {
       position: absolute;
@@ -40,30 +40,35 @@
       z-index: 10;
     }
     .cancel-input {
-      display: none;
+      overflow: hidden;
+      max-height: 0;
+      opacity: 0;
+      transition: all 0.4s ease;
+    }
+    .cancel-input.show {
+      max-height: 120px;
+      opacity: 1;
       margin-top: 10px;
     }
     h1 { color: #FF6B00; }
-    p { color: #333; }
+    p { color: #ccc; }
     input[type="text"] {
       padding: 12px;
       width: 100%;
       font-size: 16px;
       border-radius: 8px;
       border: 1px solid #ccc;
-      margin-top: 15px;
-      margin-bottom: 20px;
+      margin-top: 10px;
+      margin-bottom: 15px;
       box-sizing: border-box;
     }
     button {
       padding: 12px 20px;
       font-size: 16px;
       border: none;
-      background-color: #00FFDD;
-      color: black;
       border-radius: 8px;
       cursor: pointer;
-      margin: 5px;
+      margin: 5px 0;
       width: 100%;
     }
     .spinner {
@@ -80,6 +85,15 @@
       0% { transform: rotate(0deg); }
       100% { transform: rotate(360deg); }
     }
+    .cancel-box button {
+      background-color: #ccc;
+      color: black;
+    }
+    .cancel-box input,
+    .cancel-box .cancel-input button {
+      background-color: #333;
+      color: white;
+    }
     canvas {
       position: absolute;
       top: 0;
@@ -92,13 +106,13 @@
     <h1>🥗 랜덤런치 신청하기</h1>
     <p>이름을 입력하고 점심 신청 버튼을 눌러주세요!</p>
     <input type="text" id="nameInput" placeholder="예: Isla" />
-    <button onclick="submitForm()">신청 🍱</button>
+    <button style="background-color:#00FFDD;" onclick="submitForm()">신청 🍱</button>
     <div class="spinner" id="loader"></div>
     <div id="result" style="margin-top: 10px;"></div>
   </div>
 
   <div class="cancel-box">
-    <p>신청을 취소하고 싶다면?</p>
+    <p>신청을 잘못하셨나요?<br><strong>'신청 취소하기' 버튼을 눌러주세요</strong></p>
     <button onclick="toggleCancel()">신청 취소하기 ❌</button>
     <div class="cancel-input" id="cancelInputWrap">
       <input type="text" id="cancelName" placeholder="예: Isla" />
@@ -107,11 +121,10 @@
     <div id="cancelResult" style="margin-top: 10px; color: #0ff;"></div>
   </div>
 
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.19.0/matter.min.js"></script>
   <script>
     const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/1X0oWxxP0XuxRnw32x7vfp10U5UuZYj_KHi5rY1xftDk/gviz/tq?tqx=out:csv";
     const SCRIPT_BASE_URL = "https://script.google.com/macros/s/AKfycbx-4G1aI142_nQSX_KXs0g-wLMEwDJ24G0bOJ-WPgJ96txiNF-dL3wxr2Ww8lCOHXSj/exec";
-    const emojis = ["🍣","🍔","🍕","🍙","🌮","🥪","🍱","🍜","🍤","🥟","🧁","🍩"];
+
     const { Engine, Render, Runner, World, Bodies, Events } = Matter;
     const engine = Engine.create();
     const world = engine.world;
@@ -137,6 +150,8 @@
     const rightWall = Bodies.rectangle(width + 25, height / 2, 50, height, { isStatic: true });
     const formBlock = Bodies.rectangle(width / 2, height / 2, 460, 320, { isStatic: true });
     World.add(world, [ground, leftWall, rightWall, formBlock]);
+
+    const emojis = ["🍣","🍔","🍕","🍙","🌮","🥪","🍱","🍜","🍤","🥟","🧁","🍩"];
 
     function dropName(text) {
       const emoji = emojis[Math.floor(Math.random() * emojis.length)];
@@ -209,7 +224,7 @@
 
     function toggleCancel() {
       const wrap = document.getElementById("cancelInputWrap");
-      wrap.style.display = wrap.style.display === "none" ? "block" : "none";
+      wrap.classList.toggle("show");
     }
 
     async function cancelForm() {
