@@ -102,6 +102,8 @@
   </style>
 </head>
 <body>
+<!-- HTML continues below -->
+
   <div class="card">
     <h1>🥗 랜덤런치 신청하기</h1>
     <p>이름을 입력하고 점심 신청 버튼을 눌러주세요!</p>
@@ -121,6 +123,7 @@
     <div id="cancelResult" style="margin-top: 10px; color: #0ff;"></div>
   </div>
 
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.19.0/matter.min.js"></script>
   <script>
     const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/1X0oWxxP0XuxRnw32x7vfp10U5UuZYj_KHi5rY1xftDk/gviz/tq?tqx=out:csv";
     const SCRIPT_BASE_URL = "https://script.google.com/macros/s/AKfycbx-4G1aI142_nQSX_KXs0g-wLMEwDJ24G0bOJ-WPgJ96txiNF-dL3wxr2Ww8lCOHXSj/exec";
@@ -267,7 +270,7 @@
       const interval = setInterval(() => {
         if (i >= names.length) clearInterval(interval);
         else dropName(names[i++]);
-      }, 800);
+      }, 600);
     }
 
     window.onload = loadExistingNames;
