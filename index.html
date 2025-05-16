@@ -3,9 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <title>스푼랩스 랜런 신청</title>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.19.0/matter.min.js">
-
-</script>
+  
   <style>
     html, body {
       margin: 0; padding: 0;
@@ -110,6 +108,9 @@
   </div>
   <div id="cancelResult" style="margin-top: 10px; color: #0ff;"></div>
 </div>
+
+
+
 <script>
 const GAS_URL = "https://script.google.com/macros/s/AKfycbx1kAB0OZeALCWsYRwDRi0MeQis8vi5bmdeHxeZtSkuEjjIUl5kqnMqtOXLfvPtAsZKMA/exec";
 const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/1X0oWxxP0XuxRnw32x7vfp10U5UuZYj_KHi5rY1xftDk/gviz/tq?tqx=out:csv";
@@ -160,6 +161,7 @@ Events.on(render, "afterRender", () => {
     }
   });
 });
+
 function selectMode(mode) {
   document.getElementById("solo-form").classList.remove("active");
   document.getElementById("pair-form").classList.remove("active");
@@ -191,8 +193,6 @@ function submitSolo() {
       document.getElementById("result").innerText = "오류 발생 😢 다시 시도해주세요.";
     });
 }
-
-
 
 function submitPair() {
   const name = document.getElementById("pairName").value.trim();
@@ -231,44 +231,18 @@ function submitPair() {
     });
 }
 
-
-  const group = nextGroupCode(); // 가, 나, 다...
-  const labeledNames = [group + name, group + partner];
-
-  const formData = new FormData();
-  formData.append("names", labeledNames.join(","));
-
-  document.getElementById("loader").style.display = "block";
-  document.getElementById("result").innerText = "";
-
-  fetch(GAS_URL, { method: "POST", body: formData })
-    .then(res => res.text())
-    .then(text => {
-      document.getElementById("loader").style.display = "none";
-      document.getElementById("result").innerText = text;
-      dropName(name);
-      dropName(partner);
-    })
-    .catch(err => {
-      console.error("❌ 요청 실패:", err);
-      document.getElementById("loader").style.display = "none";
-      document.getElementById("result").innerText = "오류 발생 😢 다시 시도해주세요.";
-    });
-}
-
 function toggleCancel() {
   document.getElementById("cancelInputWrap").classList.toggle("show");
 }
+
 function cancelForm() {
   const name = document.getElementById("cancelName").value.trim();
   if (!name) return alert("이름을 입력해주세요!");
   const formData = new FormData();
   formData.append("name", name);
   formData.append("action", "delete");
-  
-console.log("👀 전송할 names:", formData.get("names"));
-fetch(GAS_URL, { method: "POST", body: formData })
 
+  fetch(GAS_URL, { method: "POST", body: formData })
     .then(res => res.text())
     .then(msg => {
       document.getElementById("cancelResult").innerText = msg;
@@ -276,15 +250,18 @@ fetch(GAS_URL, { method: "POST", body: formData })
       if (toRemove) World.remove(world, toRemove);
       document.getElementById("cancelName").value = "";
     })
-    .catch(err => { console.error("❌ 요청 실패:", err);
+    .catch(err => {
+      console.error("❌ 요청 실패:", err);
       document.getElementById("cancelResult").innerText = "취소 실패 😢";
     });
 }
+
 window.onload = async () => {
   selectMode('solo');
   const res = await fetch(SHEET_CSV_URL);
   const text = await res.text();
-  const rows = text.trim().split("\n").slice(1);
+  const rows = text.trim().split("
+").slice(1);
   const names = rows.map(row => row.split(",")[1].replace(/^"|"$/g, '')).filter(Boolean);
   let i = 0;
   const interval = setInterval(() => {
@@ -292,8 +269,6 @@ window.onload = async () => {
     else dropName(names[i++].replace(/^[가-힣]/, ''));
   }, 600);
 };
-
-
 
 let currentGroupCharCode = '가'.charCodeAt(0);
 function nextGroupCode() {
