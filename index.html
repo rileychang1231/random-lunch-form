@@ -263,6 +263,15 @@ window.onload = async () => {
 };
 
 
+
+let currentGroupCharCode = '가'.charCodeAt(0);
+function nextGroupCode() {
+  const code = String.fromCharCode(currentGroupCharCode);
+  currentGroupCharCode++;
+  if (currentGroupCharCode > '힣'.charCodeAt(0)) currentGroupCharCode = '가'.charCodeAt(0);
+  return code;
+}
 </script>
+
 </body>
 </html>
