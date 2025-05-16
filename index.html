@@ -203,6 +203,11 @@
       .then(res => res.text())
       .then(msg => {
         resultDiv.innerText = msg;
+        // 화면에서 해당 이름 제거
+        const toRemove = world.bodies.find(b => b.label && b.label.toLowerCase().includes(name.toLowerCase()));
+        if (toRemove) {
+          World.remove(world, toRemove);
+        }
         nameInput.value = "";
       })
       .catch(err => {
