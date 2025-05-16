@@ -264,7 +264,7 @@ window.onload = async () => {
   let i = 0;
   const interval = setInterval(() => {
     if (i >= names.length) clearInterval(interval);
-    else dropName(names[i++]);
+    else dropName(names[i++].replace(/^[가-힣]/, ''));
   }, 600);
 };
 
