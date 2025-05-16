@@ -25,6 +25,24 @@
       text-align: center;
       z-index: 10;
     }
+    .cancel-box {
+      position: absolute;
+      bottom: 30px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #111;
+      padding: 20px;
+      border-radius: 10px;
+      color: white;
+      text-align: center;
+      width: 90%;
+      max-width: 400px;
+      z-index: 10;
+    }
+    .cancel-input {
+      display: none;
+      margin-top: 10px;
+    }
     h1 { color: #FF6B00; }
     p { color: #333; }
     input[type="text"] {
@@ -46,7 +64,7 @@
       border-radius: 8px;
       cursor: pointer;
       margin: 5px;
-      width: 40%;
+      width: 100%;
     }
     .spinner {
       margin: 10px auto;
@@ -72,14 +90,21 @@
 <body>
   <div class="card">
     <h1>🥗 랜덤런치 신청하기</h1>
-    <p>이름을 입력하고 점심 신청 또는 취소를 선택하세요!</p>
+    <p>이름을 입력하고 점심 신청 버튼을 눌러주세요!</p>
     <input type="text" id="nameInput" placeholder="예: Isla" />
-    <div style="display: flex; justify-content: space-around;">
-      <button onclick="submitForm()">신청 🍱</button>
-      <button onclick="cancelForm()">취소 ❌</button>
-    </div>
+    <button onclick="submitForm()">신청 🍱</button>
     <div class="spinner" id="loader"></div>
     <div id="result" style="margin-top: 10px;"></div>
+  </div>
+
+  <div class="cancel-box">
+    <p>신청을 취소하고 싶다면?</p>
+    <button onclick="toggleCancel()">신청 취소하기 ❌</button>
+    <div class="cancel-input" id="cancelInputWrap">
+      <input type="text" id="cancelName" placeholder="예: Isla" />
+      <button onclick="cancelForm()">진짜 취소 😢</button>
+    </div>
+    <div id="cancelResult" style="margin-top: 10px; color: #0ff;"></div>
   </div>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.19.0/matter.min.js"></script>
@@ -182,10 +207,14 @@
       });
     }
 
+    function toggleCancel() {
+      const wrap = document.getElementById("cancelInputWrap");
+      wrap.style.display = wrap.style.display === "none" ? "block" : "none";
+    }
+
     async function cancelForm() {
-      const nameInput = document.getElementById("nameInput");
-      const name = nameInput.value.trim();
-      const resultDiv = document.getElementById("result");
+      const name = document.getElementById("cancelName").value.trim();
+      const cancelDiv = document.getElementById("cancelResult");
 
       if (!name) {
         alert("이름을 입력해주세요!");
@@ -202,16 +231,15 @@
       })
       .then(res => res.text())
       .then(msg => {
-        resultDiv.innerText = msg;
-        // 화면에서 해당 이름 제거
+        cancelDiv.innerText = msg;
         const toRemove = world.bodies.find(b => b.label && b.label.toLowerCase().includes(name.toLowerCase()));
         if (toRemove) {
           World.remove(world, toRemove);
         }
-        nameInput.value = "";
+        document.getElementById("cancelName").value = "";
       })
       .catch(err => {
-        resultDiv.innerText = "취소 중 오류 발생 😢";
+        cancelDiv.innerText = "취소 중 오류 발생 😢";
       });
     }
 
